@@ -24,7 +24,18 @@
 
 if RUBY_PLATFORM =~ /mswin|mingw32|windows/
   require 'win32/registry'
-  require 'ruby-wmi'
+  begin
+    require 'ruby-wmi'
+  rescue LoadError
+    empty_node = Chef::Node.new
+    empty_events = Chef::EventDispatch::Dispatcher.new
+    run_context = Chef::RunContext.new(empty_node, {}, empty_events)
+
+    wmi_gem = Chef::Resource::ChefGem.new('ruby-wmi', run_context)
+    wmi_gem.run_action(:install)
+
+    require 'ruby-wmi'
+  end
 end
 
 module Windows
